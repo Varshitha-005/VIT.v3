@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { ethers, getAddress, parseEther, toNumber } from "ethers";
-import Abi from "../Json/contract.json"; 
+import Abi from "../Json/Farmer copy.json"; 
 import CryptoJS from "crypto-js";
 
 const ContraContext = createContext();
@@ -15,7 +15,7 @@ export const ContextProvider = ({ children }) => {
   const [provider, setProvider] = useState("");
   const [signer, setSigner] = useState("");
   const [isConnected, setIsConnected] = useState(false);
-  const contractAddress = "0xe83aaf495e3e764e748c8d863a920db068821fe5";
+  const contractAddress = "0xf4B73D4eCa3f56Bd3d76E63c5f66B1d8B6A00eB3";
   const SECRET_KEY =
     "6b86d8ec0028179ad97a5fb46b13457731a7c8d0ff1c40e83b9d0df43250e233";
   const [veg,setveg]= useState([]);
@@ -110,7 +110,7 @@ export const ContextProvider = ({ children }) => {
         _stock,
         _title,
         parseEther(_price),
-        _typeof
+        _typeof 
       );
       await tx.wait();
       console.log("product added successfully");
@@ -150,17 +150,24 @@ export const ContextProvider = ({ children }) => {
   const BuyerOfProduct = async (productId, kilogram, pricePerUnit) => {
     try {
       const totalPriceInEther = (Number(pricePerUnit) * Number(kilogram)).toString();
-      
-      const totalPrice = ethers.parseEther(totalPriceInEther);
-      
+      const totalPrice = parseEther(totalPriceInEther);
+  
+      const userAddress = await ethers.getSigner().getAddress(); 
+      const userBalance = await ethers.provider.getBalance(userAddress); 
+  
+      if (userBalance.lt(totalPrice)) {
+        console.error("Insufficient balance for this transaction.");
+        return; 
+      }
+  
       const tx = await contract.Buyer(productId, kilogram, { value: totalPrice });
       await tx.wait();
+      
       console.log("Product purchased successfully. Transaction hash:", tx.hash);
     } catch (error) {
       console.error("Error purchasing product:", error);
     }
   };
-  
   
   const GetMyProducts = async () => {
     try {
